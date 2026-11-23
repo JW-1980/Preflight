@@ -6,6 +6,10 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\preflight.ico</ApplicationIcon>
     <AssemblyName>Preflight</AssemblyName>
+    <Version>0.1.0</Version>
+    <Product>Preflight</Product>
+    <Company>JW-1980</Company>
+    <Copyright>Copyright (c) 2026 JW-1980, MIT License</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

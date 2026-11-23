@@ -55,6 +55,18 @@ dotnet test
 ```
 Requirements: .NET 10 SDK, `git` ≥ 2.38 locally; `git`, `bash`, `tar`, `mysql`/`mysqldump` on the server.
 
+## Windows installer
+```
+installer/build-windows-installer.sh
+```
+This produces `artifacts/Preflight-<version>-win-x64-setup.exe`: a self-contained installer, so the target PC needs no .NET.
+It needs the .NET 10 SDK and NSIS 3 (`makensis`), and runs on Linux, macOS or Windows.
+- It installs per user into `%LOCALAPPDATA%\Programs\Preflight`, without administrator rights. It adds a Start menu shortcut,
+  an optional desktop shortcut, and an entry in *Apps & features*.
+- Supports Windows 10/11 x64. ARM64 PCs run it through x64 emulation.
+- The installer is **not code-signed**, so Windows SmartScreen shows "unknown publisher" until it is signed with a certificate.
+- Uninstalling keeps your linked-site list in `%APPDATA%\Preflight`.
+
 ## Layout
 - `src/Preflight.Core`: manifest, git checks, SSH (SSH.NET), migrations, smoke tests, snapshots, discovery, DeepSeek client, pipeline
 - `src/Preflight.App`: Avalonia UI (light/dark design tokens)

@@ -50,6 +50,8 @@ Without a key, rule-based detection is used.
 dotnet build
 dotnet run --project src/Preflight.App
 dotnet test
+# optional real-SSH run (SSH server on this machine, same filesystem):
+# PREFLIGHT_SSH_TEST=user@127.0.0.1:2222:/path/to/key dotnet test
 ```
 Requirements: .NET 10 SDK, `git` ≥ 2.38 locally; `git`, `bash`, `tar`, `mysql`/`mysqldump` on the server.
 

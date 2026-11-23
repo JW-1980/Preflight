@@ -142,7 +142,7 @@ public sealed class PipelineTests : IClassFixture<MariaDbFixture>, IDisposable
         File.WriteAllText(Path.Combine(dir, ".env"),
             $"DB_HOST=127.0.0.1\nDB_PORT={_db.Port}\nDB_DATABASE={database}\nDB_USERNAME=app\nDB_PASSWORD='p\"w'd'\n");
 
-    private DeployPipeline Pipeline(bool withDb = true)
+    private DeployPipeline Pipeline(bool withDb = true, bool overSsh = false)
     {
         var m = ManifestTests.Valid();
         m.Server.LivePath = _live;
@@ -155,7 +155,19 @@ public sealed class PipelineTests : IClassFixture<MariaDbFixture>, IDisposable
         m.Database.Strategy = withDb ? "incremental_sql" : "none";
         m.SmokeTests.Endpoints = ["/", "/contact"];
         m.SmokeTests.TimeoutSeconds = 5;
-        var p = new DeployPipeline(m, _ => Task.FromResult<IRemoteShell>(new LocalBashShell()), Smoke.SmokeTester.CreateDefaultClient());
+        Func<CancellationToken, Task<IRemoteShell>> connect = _ => Task.FromResult<IRemoteShell>(new LocalBashShell());
+        if (overSsh)
+        {
+            // PREFLIGHT_SSH_TEST=user@host:port:keyfile — an SSH server on this machine (same filesystem).
+            var parts = Environment.GetEnvironmentVariable("PREFLIGHT_SSH_TEST")!.Split(':');
+            var userHost = parts[0].Split('@');
+            m.Server.SshUser = userHost[0];
+            m.Server.SshHost = userHost[1];
+            m.Server.SshPort = int.Parse(parts[1]);
+            m.Server.SshKeyPath = parts[2];
+            connect = async ct => { var sh = new SshRemoteShell(m.Server); await sh.ConnectAsync(ct); return sh; };
+        }
+        var p = new DeployPipeline(m, connect, Smoke.SmokeTester.CreateDefaultClient());
         p.Log += _log.Add;
         return p;
     }
@@ -193,6 +205,29 @@ public sealed class PipelineTests : IClassFixture<MariaDbFixture>, IDisposable
         // Second staging run: nothing new to migrate, idempotent.
         Assert.True((await p.DeployToStagingAsync()).Success, LogText);
         Assert.Contains("0 applied, 1 already present", LogText);
+    }
+
+    [SkippableFact]
+    public async Task Full_flow_and_rollback_over_real_ssh()
+    {
+        Skip.IfNot(_db.Available, _db.Reason);
+        Skip.If(Environment.GetEnvironmentVariable("PREFLIGHT_SSH_TEST") is null, "PREFLIGHT_SSH_TEST not set");
+        _db.Sql("live_db", "CREATE TABLE orders (id INT PRIMARY KEY); INSERT INTO orders VALUES (1);");
+        var p = Pipeline(overSsh: true);
+        Assert.True((await p.DeployToStagingAsync()).Success, LogText);
+        Assert.Equal("customers", _db.Sql("staging_db", "SHOW TABLES LIKE 'customers'"));
+        p.MarkReviewed();
+        _liveWeb.ForceStatus = path => path == "/contact" ? 500 : null;
+        Assert.False((await p.PromoteAsync()).Success);
+        Assert.Contains("Rolled back to snapshot", LogText);
+        Assert.Equal("", _db.Sql("live_db", "SHOW TABLES LIKE 'customers'"));
+        Assert.Equal("1", _db.Sql("live_db", "SELECT COUNT(*) FROM orders"));
+
+        _liveWeb.ForceStatus = null;
+        Assert.True((await p.DeployToStagingAsync()).Success, LogText);
+        p.MarkReviewed();
+        Assert.True((await p.PromoteAsync()).Success, LogText);
+        Assert.Equal("<h1>v1</h1>", File.ReadAllText(Path.Combine(_live, "index.html")));
     }
 
     [SkippableFact]

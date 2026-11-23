@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Preflight.App.ViewModels"
+        x:Class="Preflight.App.Views.AddSiteWindow"
+        x:DataType="vm:AddSiteViewModel"
+        Icon="/Assets/preflight.ico"
+        Title="Add site" Width="680" Height="760" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource PfPanel}">
+    <DockPanel Margin="24">
+        <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,16">
+            <TextBlock Text="Add Site" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource PfText}"/>
+            <TextBlock Text="Local Git folder and SSH access; the discovery agent finds the rest." Classes="muted"/>
+        </StackPanel>
+
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*,Auto,8,Auto" Margin="0,16,0,0">
+            <Button Content="Cancel" Click="OnCancel"/>
+            <Button Grid.Column="2" Classes="primary" Content="Run discovery" Command="{Binding DiscoverCommand}"
+                    IsEnabled="{Binding !Running}"/>
+            <Button Grid.Column="4" Classes="success" Content="Save manifest" Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding HasResult}"/>
+        </Grid>
+
+        <StackPanel DockPanel.Dock="Top" Spacing="10">
+            <TextBlock Text="Local Git folder" FontWeight="SemiBold"/>
+            <Grid ColumnDefinitions="*,8,Auto">
+                <TextBox Text="{Binding LocalFolder}" FontFamily="{StaticResource PfMono}" PlaceholderText="/path/to/repository"/>
+                <Button Grid.Column="2" Content="Browse…" Click="OnBrowseFolder"/>
+            </Grid>
+            <TextBlock Text="SSH host" FontWeight="SemiBold"/>
+            <TextBox Text="{Binding SshHost}" FontFamily="{StaticResource PfMono}" PlaceholderText="server.example.com"/>
+            <Grid ColumnDefinitions="*,12,120">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="SSH user" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding SshUser}" FontFamily="{StaticResource PfMono}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="6">
+                    <TextBlock Text="Port" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding Port}" FontFamily="{StaticResource PfMono}"/>
+                </StackPanel>
+            </Grid>
+            <TextBlock Text="Private key" FontWeight="SemiBold"/>
+            <Grid ColumnDefinitions="*,8,Auto">
+                <TextBox Text="{Binding KeyPath}" FontFamily="{StaticResource PfMono}"/>
+                <Button Grid.Column="2" Content="Browse…" Click="OnBrowseKey"/>
+            </Grid>
+            <TextBlock Text="Key-based SSH only." Classes="muted"/>
+            <Border Classes="chip" BorderBrush="{DynamicResource PfBorder}" Padding="12,8">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock TextWrapping="Wrap" FontSize="12"
+                               Text="DeepSeek API key: set DEEPSEEK_API_KEY. Secrets are blanked before anything is sent."/>
+                    <TextBlock Grid.Column="1" Text="{Binding AiChip}" Classes="mono" Margin="12,0,0,0"
+                               Foreground="{DynamicResource PfSuccess}" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            <TextBlock Text="{Binding Error}" Foreground="{DynamicResource PfError}" TextWrapping="Wrap"
+                       IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            <TextBlock Text="DISCOVERY LOG" Classes="mono muted" Margin="0,6,0,0"/>
+        </StackPanel>
+
+        <Border Background="{DynamicResource PfTerminal}" CornerRadius="4" Padding="12">
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding Findings}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FindingVm">
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2">
+                                <TextBlock Text="{Binding Icon}" Classes="mono" Width="14" Foreground="{DynamicResource PfSuccess}"/>
+                                <SelectableTextBlock Text="{Binding Text}" FontFamily="{StaticResource PfMono}" FontSize="12"
+                                                     TextWrapping="Wrap" MaxWidth="560"
+                                                     Foreground="{DynamicResource PfTerminalText}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+    </DockPanel>
+</Window>

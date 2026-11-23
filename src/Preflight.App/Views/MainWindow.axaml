@@ -1,0 +1,177 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Preflight.App.ViewModels"
+        x:Class="Preflight.App.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="/Assets/preflight.ico"
+        Title="Preflight"
+        Width="1440" Height="900" MinWidth="1024" MinHeight="680"
+        Background="{DynamicResource PfCanvas}">
+
+    <Window.Styles>
+        <Style Selector="Border.ok">
+            <Setter Property="BorderBrush" Value="{DynamicResource PfSuccess}"/>
+        </Style>
+        <Style Selector="Border.bad">
+            <Setter Property="BorderBrush" Value="{DynamicResource PfError}"/>
+        </Style>
+        <Style Selector="TextBlock.ok"><Setter Property="Foreground" Value="{DynamicResource PfSuccess}"/></Style>
+        <Style Selector="TextBlock.bad"><Setter Property="Foreground" Value="{DynamicResource PfError}"/></Style>
+        <Style Selector="TextBlock.warn"><Setter Property="Foreground" Value="{DynamicResource PfWarning}"/></Style>
+        <Style Selector="Button.step.passed"><Setter Property="BorderBrush" Value="{DynamicResource PfSuccess}"/></Style>
+        <Style Selector="Button.step.failed"><Setter Property="BorderBrush" Value="{DynamicResource PfError}"/></Style>
+        <Style Selector="Button.step.go"><Setter Property="BorderBrush" Value="{DynamicResource PfPrimary}"/></Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*,240" Margin="0">
+
+        <!-- Header context bar -->
+        <Border Grid.Row="0" Background="{DynamicResource PfPanel}" BorderBrush="{DynamicResource PfBorder}"
+                BorderThickness="0,0,0,1" Padding="16,10">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Image Source="/Assets/preflight-256.png" Width="28" Height="28"/>
+                    <TextBlock Text="Preflight" Classes="h" VerticalAlignment="Center"/>
+                </StackPanel>
+                <ComboBox Grid.Column="1" Margin="24,0,8,0" MinWidth="240" VerticalAlignment="Center"
+                          ItemsSource="{Binding Sites}" SelectedItem="{Binding SelectedSite}"
+                          PlaceholderText="No site linked" ToolTip.Tip="Site"/>
+                <Button Grid.Column="2" Content="+ Add site" Click="OnAddSite" VerticalAlignment="Center"/>
+
+                <Border Grid.Column="4" Classes="chip" Margin="0,0,8,0" VerticalAlignment="Center"
+                        Classes.ok="{Binding SshOk}" Classes.bad="{Binding !SshOk}" IsVisible="{Binding HasSite}">
+                    <TextBlock Text="{Binding SshStatus}" Classes="mono" Classes.ok="{Binding SshOk}" Classes.bad="{Binding !SshOk}"/>
+                </Border>
+                <Border Grid.Column="5" Classes="chip" Margin="0,0,8,0" VerticalAlignment="Center"
+                        Classes.ok="{Binding GitClean}" Classes.bad="{Binding !GitClean}" IsVisible="{Binding HasSite}">
+                    <TextBlock Text="{Binding GitStatusText}" Classes="mono" Classes.ok="{Binding GitClean}" Classes.bad="{Binding !GitClean}"/>
+                </Border>
+                <Button Grid.Column="6" Content="⟳" Command="{Binding RefreshStatusCommand}" ToolTip.Tip="Refresh status"
+                        Margin="0,0,8,0" IsVisible="{Binding HasSite}"/>
+                <Button Grid.Column="7" Content="◐ Theme" Command="{Binding ToggleThemeCommand}" ToolTip.Tip="Light / dark"/>
+            </Grid>
+        </Border>
+
+        <!-- 3-button pipeline bar -->
+        <Border Grid.Row="1" Classes="panel" Margin="16,16,16,0">
+            <Grid ColumnDefinitions="*,12,*,12,*,16,Auto">
+                <Button Grid.Column="0" Classes="step go" Command="{Binding DeployCommand}"
+                        Classes.passed="{Binding StagingPassed}" Classes.failed="{Binding StagingFailed}">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="STEP 1" Classes="muted mono"/>
+                        <TextBlock Text="Deploy to Staging &amp; Run Tests" FontWeight="SemiBold" FontSize="15"/>
+                        <TextBlock Text="{Binding StagingCaption}" Classes="muted" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="2" Classes="step" Command="{Binding ReviewCommand}">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="STEP 2" Classes="muted mono"/>
+                        <TextBlock Text="Review Staging" FontWeight="SemiBold" FontSize="15"/>
+                        <TextBlock Text="{Binding ReviewCaption}" Classes="muted" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="4" Classes="step" Command="{Binding PromoteCommand}"
+                        Classes.passed="{Binding PromotePassed}" Classes.failed="{Binding PromoteFailed}"
+                        BorderBrush="{DynamicResource PfSuccess}">
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="STEP 3" Classes="muted mono"/>
+                            <TextBlock Text="🔒 LOCKED" Classes="mono warn" FontSize="11" IsVisible="{Binding PromoteLocked}"/>
+                        </StackPanel>
+                        <TextBlock Text="Promote to Production" FontWeight="SemiBold" FontSize="15" Foreground="{DynamicResource PfSuccess}"/>
+                        <TextBlock Text="{Binding PromoteCaption}" Classes="muted" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="6" Content="Cancel run" Command="{Binding CancelCommand}" IsVisible="{Binding Busy}"
+                        VerticalAlignment="Center" Foreground="{DynamicResource PfError}"/>
+            </Grid>
+        </Border>
+
+        <!-- Main: discovery/manifest + smoke tests -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,16,*" Margin="16">
+            <Border Classes="panel">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                        <TextBlock Text="AI Discovery &amp; Manifest" Classes="h"/>
+                        <TextBlock Grid.Column="1" Text="{Binding AiMode}" Classes="mono muted"/>
+                    </Grid>
+                    <TextBlock DockPanel.Dock="Top" IsVisible="{Binding HasNoSite}" Classes="muted" TextWrapping="Wrap"
+                               Text="No site linked yet. Choose “+ Add site”: Preflight asks for the local Git folder and SSH access, then discovers the server layout and writes site-manifest.json."/>
+                    <ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding ManifestRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ManifestRowVm">
+                                    <Grid ColumnDefinitions="130,*" Margin="0,3">
+                                        <TextBlock Text="{Binding Key}" Classes="mono muted"/>
+                                        <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" FontFamily="{StaticResource PfMono}"
+                                                             FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource PfText}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="2" Classes="panel">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                        <TextBlock Text="Smoke Tests" Classes="h"/>
+                        <TextBlock Grid.Column="1" Text="{Binding SmokeSummary}" Classes="mono muted"/>
+                    </Grid>
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="2*,70,80,3*" Margin="0,0,0,6">
+                        <TextBlock Text="ROUTE" Classes="mono muted"/>
+                        <TextBlock Grid.Column="1" Text="STATUS" Classes="mono muted"/>
+                        <TextBlock Grid.Column="2" Text="TIME" Classes="mono muted"/>
+                        <TextBlock Grid.Column="3" Text="RESULT" Classes="mono muted"/>
+                    </Grid>
+                    <ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding SmokeRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:SmokeRowVm">
+                                    <Border BorderBrush="{DynamicResource PfBorder}" BorderThickness="0,0,0,1" Padding="0,6">
+                                        <Grid ColumnDefinitions="2*,70,80,3*">
+                                            <TextBlock Text="{Binding Route}" Classes="mono"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Status}" Classes="mono"
+                                                       Classes.ok="{Binding Passed}" Classes.bad="{Binding Failed}" FontWeight="Bold"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Time}" Classes="mono muted"/>
+                                            <TextBlock Grid.Column="3" Text="{Binding Result}" TextWrapping="Wrap" FontSize="12"
+                                                       Classes.bad="{Binding Failed}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- Terminal console -->
+        <Border Grid.Row="3" Margin="16,0,16,16" Background="{DynamicResource PfTerminal}" CornerRadius="8"
+                BorderBrush="{DynamicResource PfBorder}" BorderThickness="1">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="12,8">
+                    <TextBlock Text="Console" Foreground="{DynamicResource PfTerminalText}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="Clear" Command="{Binding ClearLogCommand}" Margin="0,0,8,0"/>
+                    <Button Grid.Column="2" Content="Copy all" Click="OnCopyLog"/>
+                </Grid>
+                <ScrollViewer x:Name="LogScroll" Padding="12,0,12,8">
+                    <ItemsControl ItemsSource="{Binding Log}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LogLineVm">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Time}" Classes="mono" Foreground="#64748B"/>
+                                    <TextBlock Text="{Binding Level}" Classes="mono" Width="40" Foreground="{DynamicResource PfPrimary}"
+                                               Classes.ok="{Binding IsSuccess}" Classes.bad="{Binding IsError}" Classes.warn="{Binding IsWarning}"/>
+                                    <SelectableTextBlock Text="{Binding Message}" FontFamily="{StaticResource PfMono}" FontSize="12"
+                                                         Foreground="{DynamicResource PfTerminalText}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

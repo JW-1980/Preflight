@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="tileGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="planeMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0EA5E9" />
+    </linearGradient>
+    <linearGradient id="planeShadow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#0369A1" />
+    </linearGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Plain dark background canvas -->
+
+  <!-- App Icon Rounded Square Tile -->
+  <rect x="112" y="112" width="800" height="800" rx="192" ry="192" fill="url(#tileGrad)" stroke="#334155" stroke-width="2" filter="url(#dropShadow)" />
+
+  <!-- Subtle inner border highlight -->
+  <rect x="114" y="114" width="796" height="796" rx="190" ry="190" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2" />
+
+  <!-- Paper Plane graphic -->
+  <g transform="translate(512, 480) rotate(-15) scale(1.5) translate(-256, -256)">
+    <!-- Right wing / shadow side -->
+    <path d="M 60 220 L 440 90 L 240 420 Z" fill="url(#planeShadow)" />
+    <!-- Left wing / bright side -->
+    <path d="M 60 220 L 440 90 L 260 320 Z" fill="url(#planeMain)" />
+    <!-- Center fold crease overlay -->
+    <path d="M 60 220 L 260 320 L 240 420 Z" fill="#7DD3FC" opacity="0.3" />
+  </g>
+
+  <!-- Emerald Checkmark Badge at lower right -->
+  <g transform="translate(650, 630)">
+    <circle cx="56" cy="56" r="56" fill="#051424" />
+    <circle cx="56" cy="56" r="46" fill="#4ADE80" />
+    <path d="M 38 56 L 50 68 L 76 40" fill="none" stroke="#051424" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

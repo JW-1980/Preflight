@@ -1,0 +1,91 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Preflight.App.App"
+             RequestedThemeVariant="Default">
+    <!-- Design tokens: functional design §3.1, layout from the Stitch project "Preflight" (design/). -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="PfCanvas" Color="#0F172A"/>
+                    <SolidColorBrush x:Key="PfPanel" Color="#1E293B"/>
+                    <SolidColorBrush x:Key="PfInset" Color="#0F172A"/>
+                    <SolidColorBrush x:Key="PfBorder" Color="#334155"/>
+                    <SolidColorBrush x:Key="PfPrimary" Color="#38BDF8"/>
+                    <SolidColorBrush x:Key="PfOnPrimary" Color="#0F172A"/>
+                    <SolidColorBrush x:Key="PfSuccess" Color="#4ADE80"/>
+                    <SolidColorBrush x:Key="PfWarning" Color="#FBBF24"/>
+                    <SolidColorBrush x:Key="PfError" Color="#F87171"/>
+                    <SolidColorBrush x:Key="PfTerminal" Color="#030712"/>
+                    <SolidColorBrush x:Key="PfTerminalText" Color="#F3F4F6"/>
+                    <SolidColorBrush x:Key="PfText" Color="#F8FAFC"/>
+                    <SolidColorBrush x:Key="PfMuted" Color="#94A3B8"/>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="PfCanvas" Color="#F8FAFC"/>
+                    <SolidColorBrush x:Key="PfPanel" Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="PfInset" Color="#F1F5F9"/>
+                    <SolidColorBrush x:Key="PfBorder" Color="#E2E8F0"/>
+                    <SolidColorBrush x:Key="PfPrimary" Color="#0284C7"/>
+                    <SolidColorBrush x:Key="PfOnPrimary" Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="PfSuccess" Color="#16A34A"/>
+                    <SolidColorBrush x:Key="PfWarning" Color="#D97706"/>
+                    <SolidColorBrush x:Key="PfError" Color="#DC2626"/>
+                    <SolidColorBrush x:Key="PfTerminal" Color="#0F172A"/>
+                    <SolidColorBrush x:Key="PfTerminalText" Color="#E2E8F0"/>
+                    <SolidColorBrush x:Key="PfText" Color="#0F172A"/>
+                    <SolidColorBrush x:Key="PfMuted" Color="#64748B"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+            <FontFamily x:Key="PfMono">Cascadia Mono, JetBrains Mono, Consolas, Menlo, DejaVu Sans Mono, monospace</FontFamily>
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+        <Style Selector="Border.panel">
+            <Setter Property="Background" Value="{DynamicResource PfPanel}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource PfBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+        </Style>
+        <Style Selector="TextBlock.h">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PfText}"/>
+        </Style>
+        <Style Selector="TextBlock.muted">
+            <Setter Property="Foreground" Value="{DynamicResource PfMuted}"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="TextBlock.mono">
+            <Setter Property="FontFamily" Value="{StaticResource PfMono}"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="Border.chip">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,3"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{DynamicResource PfPrimary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PfOnPrimary}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.success">
+            <Setter Property="Background" Value="{DynamicResource PfSuccess}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PfOnPrimary}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.step">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource PfBorder}"/>
+            <Setter Property="Background" Value="{DynamicResource PfInset}"/>
+        </Style>
+    </Application.Styles>
+</Application>

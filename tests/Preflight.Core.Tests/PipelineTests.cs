@@ -113,6 +113,8 @@ public sealed class PipelineTests : IClassFixture<MariaDbFixture>, IDisposable
     public PipelineTests(MariaDbFixture db)
     {
         _db = db;
+        if (_db.Available)
+            _db.Sql("mysql", "DROP DATABASE IF EXISTS live_db; DROP DATABASE IF EXISTS staging_db; CREATE DATABASE live_db; CREATE DATABASE staging_db;");
         (_origin, _work) = GitHelper.CreateRepo(_tmp.Path);
         // Site content + a migration, on staging.
         File.WriteAllText(Path.Combine(_work, "index.html"), "<h1>v1</h1>");

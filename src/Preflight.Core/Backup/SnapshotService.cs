@@ -55,8 +55,15 @@ public sealed class SnapshotService(IRemoteShell shell, MigrationRunner db, Acti
             var cnf = await db.WriteOptionFileAsync(creds, ct);
             try
             {
+                // Drop every table first: tables created by the failed promotion are not in the dump.
+                var mysql = $"mysql --defaults-extra-file={Sh.Q(cnf)} {Sh.Q(creds.Database)}";
+                const string listDrops =
+                    "SELECT CONCAT('DROP ', IF(table_type='VIEW','VIEW','TABLE'), ' IF EXISTS `', REPLACE(table_name,'`','``'), '`;') " +
+                    "FROM information_schema.tables WHERE table_schema = DATABASE()";
                 (await shell.RunAsync(Sh.Bash(
-                    $"gunzip -c {Sh.Q(snap.DatabaseDump)} | mysql --defaults-extra-file={Sh.Q(cnf)} {Sh.Q(creds.Database)}"), ct))
+                    $"{{ echo 'SET FOREIGN_KEY_CHECKS=0;'; {mysql} -N -B -e {Sh.Q(listDrops)}; echo 'SET FOREIGN_KEY_CHECKS=1;'; }} | {mysql}"), ct))
+                    .EnsureOk("clear database before restore");
+                (await shell.RunAsync(Sh.Bash($"gunzip -c {Sh.Q(snap.DatabaseDump)} | {mysql}"), ct))
                     .EnsureOk("restore database");
             }
             finally { await shell.RunAsync($"rm -f {Sh.Q(cnf)}", CancellationToken.None); }

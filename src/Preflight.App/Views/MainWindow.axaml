@@ -18,6 +18,12 @@
         <Style Selector="TextBlock.ok"><Setter Property="Foreground" Value="{DynamicResource PfSuccess}"/></Style>
         <Style Selector="TextBlock.bad"><Setter Property="Foreground" Value="{DynamicResource PfError}"/></Style>
         <Style Selector="TextBlock.warn"><Setter Property="Foreground" Value="{DynamicResource PfWarning}"/></Style>
+        <Style Selector="Button.term">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource PfTerminalText}"/>
+            <Setter Property="BorderBrush" Value="#475569"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
         <Style Selector="Button.step.passed"><Setter Property="BorderBrush" Value="{DynamicResource PfSuccess}"/></Style>
         <Style Selector="Button.step.failed"><Setter Property="BorderBrush" Value="{DynamicResource PfError}"/></Style>
         <Style Selector="Button.step.go"><Setter Property="BorderBrush" Value="{DynamicResource PfPrimary}"/></Style>
@@ -153,8 +159,8 @@
             <DockPanel>
                 <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="12,8">
                     <TextBlock Text="Console" Foreground="{DynamicResource PfTerminalText}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <Button Grid.Column="1" Content="Clear" Command="{Binding ClearLogCommand}" Margin="0,0,8,0"/>
-                    <Button Grid.Column="2" Content="Copy all" Click="OnCopyLog"/>
+                    <Button Grid.Column="1" Classes="term" Content="Clear" Command="{Binding ClearLogCommand}" Margin="0,0,8,0"/>
+                    <Button Grid.Column="2" Classes="term" Content="Copy all" Click="OnCopyLog"/>
                 </Grid>
                 <ScrollViewer x:Name="LogScroll" Padding="12,0,12,8">
                     <ItemsControl ItemsSource="{Binding Log}">

@@ -210,7 +210,7 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleTheme()
     {
-        IsDark = !IsDark;
+        IsDark = Application.Current?.ActualThemeVariant != ThemeVariant.Dark;
         if (Application.Current is { } app) app.RequestedThemeVariant = IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
     }
 
